@@ -1,5 +1,6 @@
 from django import forms
 from apps.galeria.models import Fotografia
+from django.contrib.admin.widgets import AdminDateWidget
 
 class FotografiaForms(forms.ModelForm):
     class Meta:
