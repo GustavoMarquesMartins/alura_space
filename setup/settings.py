@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path, os
 from dotenv import load_dotenv
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,8 +45,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'apps.galeria.apps.GaleriaConfig',
     'apps.usuarios.apps.UsuariosConfig',
+    
+    'cloudinary_storage',
+    'cloudinary',
+    #'storages',
 ]
 
 MIDDLEWARE = [
@@ -117,12 +127,66 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Configuração específica do Cloudinary
+CLOUDINARY_STORAGE  = {
+    'CLOUD_NAME': str(os.getenv('CLOUD_NAME')),
+    'API_KEY': str(os.getenv('API_KEY')),
+    'API_SECRET': str(os.getenv('API_SECRET')),
+}
+ 
+#  AWS Configuração
+
+#  Sua chave de acesso à AWS
+# AWS_ACCESS_KEY_ID = str(os.getenv('AWS_ACCESS_KEY_ID'))
+
+# Sua chave secreta de acesso à AWS
+# AWS_SECRET_ACCESS_KEY = str(os.getenv('AWS_SECRET_ACCESS_KEY'))
+
+# O nome do seu bucket no Amazon S3, onde você armazenará seus arquivos
+# AWS_STORAGE_BUCKET_NAME = str(os.getenv('AWS_STORAGE_BUCKET_NAME'))
+
+# Domínio personalizado para acessar os arquivos no S3
+# AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+# Permissão padrão de leitura para os objetos no S3
+# AWS_DEFAULT_ACL = 'public-read'
+
+# Parâmetros adicionais para objetos no S3, como configuração de cache
+# AWS_S3_OBJECT_PARAMETERS = {
+#     'CacheControl': 'max-age=86400'
+# }
+
+# Localização ou diretório no bucket S3 onde os arquivos serão armazenados
+# AWS_LOCATION = 'static'
+
+# Desativa a inclusão automática de autenticação na string de consulta ao acessar arquivos no S3
+# AWS_QUERYSTRING_AUTH = False
+
+# Cabeçalhos HTTP personalizados incluídos nas respostas ao acessar arquivos no S3
+# AWS_HEADERS = {
+#     'Access-Control-Allow-Origin': '*',
+# }
+
+
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+# Configuração para armazenar arquivos de mídia no Amazon S3
+#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-STATICFILES_DIRS = [
+# Configuração para armazenar arquivos estáticos no Amazon S3
+#STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
+
+# URL base para servir arquivos estáticos do Amazon S3
+#STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+
+STATIC_URL  =  '/static/' 
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+STATICFILES_DIRS = [    
     os.path.join(BASE_DIR, 'setup/static')
 ]
 
@@ -130,9 +194,14 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Media
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 MEDIA_URL = "/media/"
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
