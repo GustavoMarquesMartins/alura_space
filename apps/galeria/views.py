@@ -1,34 +1,29 @@
-from django.shortcuts import render, get_object_or_404, redirect, resolve_url
+from django.shortcuts import render, get_object_or_404, redirect
 
 from apps.galeria.models import Fotografia
 from apps.galeria.forms import FotografiaForms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import JsonResponse
 
 
 @login_required(login_url='login')
 def index(request):
-    fotografias = Fotografia.objects.order_by("data_fotografia").filter(publicada=True)
-    return render(request, 'galeria/index.html', {"cards": fotografias})
+    return render(request, 'galeria/index.html', {"cards": get_fotografias()})
 
 
 @login_required(login_url='login')
 def imagem(request, foto_id):
-    fotografia = get_object_or_404(Fotografia, pk=foto_id)
-    return render(request, 'galeria/imagem.html', {"fotografia": fotografia})
+    return render(request, 'galeria/imagem.html', {"fotografia": get_fotografia(foto_id)})
 
 
 @login_required(login_url='login')
 def buscar(request):
-    fotografias = Fotografia.objects.order_by("data_fotografia").filter(publicada=True)
-
     if "buscar" in request.GET:
         nome_a_buscar = request.GET['buscar']
 
         if nome_a_buscar:
-            fotografias = fotografias.filter(nome__icontains=nome_a_buscar)
+            fotografias = get_fotografias().filter(nome__icontains=nome_a_buscar)
 
     return render(request, "galeria/index.html", {"cards": fotografias})
 
@@ -41,7 +36,9 @@ def salvar(request):
         form = FotografiaForms(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            fotografia = form.save(commit=False)
+            fotografia.usuario = request.user
+            fotografia.save()
             messages.success(request, 'Nova fotografia cadastrada!')
             return redirect('index')
 
@@ -50,7 +47,7 @@ def salvar(request):
 
 @login_required(login_url='login')
 def editar(request, foto_id):
-    fotografia = Fotografia.objects.get(id=foto_id)
+    fotografia = get_fotografia(foto_id)
     form = FotografiaForms(instance=fotografia)
 
     if request.method == 'POST':
@@ -66,7 +63,7 @@ def editar(request, foto_id):
 
 @login_required(login_url='login')
 def deletar(request, foto_id):
-    fotografia = Fotografia.objects.get(id=foto_id)
+    fotografia = get_fotografia(foto_id)
     fotografia.foto.delete()
     fotografia.delete()
     messages.success(request, 'Deleção feita com sucesso')
@@ -75,20 +72,15 @@ def deletar(request, foto_id):
 
 @login_required(login_url='login')
 def categoria(request, categoria):
-    print(categoria)
     fotografias = Fotografia.objects.order_by("data_fotografia").filter(publicada=True, categoria=categoria)
     return render(request, 'galeria/index.html', {"cards": fotografias})
 
 
 @login_required(login_url='login')
 def favoritar(request, fotografia_id):
-    fotografia = get_object_or_404(Fotografia, id=fotografia_id)
-    if fotografia.favoritado:
-        fotografia.favoritado = False
-        fotografia.save()
-    else:
-        fotografia.favoritado = True
-        fotografia.save()
+    fotografia = get_fotografia(fotografia_id)
+    fotografia.favoritado = not fotografia.favoritado
+    fotografia.save()
     return redirect('index')
 
 
@@ -102,6 +94,14 @@ def favoritados(request):
 def minhas_publicacoes(request):
     fotografias = Fotografia.objects.filter(usuario=request.user)
     return render(request, 'galeria/index.html', {'cards': fotografias})
+
+
+def get_fotografias():
+    return Fotografia.objects.order_by("data_fotografia").filter(publicada=True)
+
+
+def get_fotografia(foto_id):
+    return get_object_or_404(Fotografia, pk=foto_id)
 
 
 # Parte para desenvolvimento

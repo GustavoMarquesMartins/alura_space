@@ -8,31 +8,27 @@ from django.contrib import auth
 
 from django.contrib import messages
 
+
 def login(request):
     form = LoginForms()
-    
     if request.method == 'POST':
-        form = LoginForms(request.POST) 
+        form = LoginForms(request.POST)
 
         if form.is_valid():
-            nome =form['nome_login'].value()
-            senha =form['senha'].value()
-            
-            usuario = auth.authenticate(
-                request,
-                username=nome,
-                password=senha
-            )
-            
+            nome = form['nome_login'].value()
+            senha = form['senha'].value()
+            usuario = autentica_usuario(request, nome, senha)
+
             if usuario is not None:
-                auth.login(request,usuario)
-                messages.success(request,f'{nome} Login realizado com sucesso!')
+                auth.login(request, usuario)
+                messages.success(request, f'{nome} Login realizado com sucesso!')
                 return redirect('index')
             else:
-                messages.error(request,'Erro ao efetuar login!')
+                messages.error(request, 'Erro ao efetuar login!')
                 return redirect('login')
-                    
-    return render(request,'usuarios/login.html',{'form': form})
+
+    return render(request, 'usuarios/login.html', {'form': form})
+
 
 def cadastro(request):
     form = CadastroForms()
@@ -41,26 +37,38 @@ def cadastro(request):
         form = CadastroForms(request.POST)
 
         if form.is_valid():
-            nome=form['nome_cadastro'].value()
-            email=form['email'].value()
-            senha=form['senha_1'].value()
+            nome = form['nome_cadastro'].value()
+            email = form['email'].value()
+            senha = form['senha_1'].value()
 
             if User.objects.filter(username=nome).exists():
                 messages.error(request, 'Usuário já existente')
                 return redirect('cadastro')
 
-            usuario = User.objects.create_user(
-                username=nome,
-                email=email,
-                password=senha
-            )
+            usuario = criar_usuario(nome, email, senha)
             usuario.save()
             messages.success(request, 'Cadastro efetuado com sucesso!')
             return redirect('login')
 
     return render(request, 'usuarios/cadastro.html', {'form': form})
 
+
 def logout(request):
     auth.logout(request)
     messages.success(request, 'Logout efetuado com sucesso!')
     return redirect('login')
+
+
+def autentica_usuario(request, nome, senha):
+    return auth.authenticate(
+        request,
+        username=nome,
+        password=senha
+    )
+
+def criar_usuario(nome, email, senha):
+    return User.objects.create_user(
+        username=nome,
+        email=email,
+        password=senha
+    )
