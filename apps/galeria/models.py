@@ -1,15 +1,14 @@
 from django.db import models
 from datetime import datetime
 from django.contrib.auth.models import User
-from cloudinary.models import CloudinaryField
+
 
 class Fotografia(models.Model):
-
     OPCOES_CATEGORIA = [
-        ("NEBULOSA","Nebulosa"),
-        ("ESTRELA","Estrela"),
-        ("GALÁXIA","Galáxia"),
-        ("PLANETA","Planeta"),
+        ("NEBULOSA", "Nebulosa"),
+        ("ESTRELA", "Estrela"),
+        ("GALÁXIA", "Galáxia"),
+        ("PLANETA", "Planeta"),
     ]
 
     nome = models.CharField(max_length=100, null=False, blank=False)
@@ -18,7 +17,7 @@ class Fotografia(models.Model):
     descricao = models.TextField(null=False, blank=False)
     foto = models.ImageField(upload_to='fotografias/', blank=True)
     publicada = models.BooleanField(default=True)
-    data_fotografia = models.DateTimeField(default=datetime.now, blank=False)
+    data_fotografia = models.DateTimeField(default=datetime.now, null=True, blank=True)
     usuario = models.ForeignKey(
         to=User,
         on_delete=models.SET_NULL,
@@ -26,6 +25,7 @@ class Fotografia(models.Model):
         blank=False,
         related_name='user'
     )
+    favoritado = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome

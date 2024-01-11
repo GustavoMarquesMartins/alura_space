@@ -5,7 +5,7 @@ from django.contrib.admin.widgets import AdminDateWidget
 class FotografiaForms(forms.ModelForm):
     class Meta:
         model = Fotografia
-        exclude = ['publicada',]
+        exclude = ['publicada','favoritado']
         labels = {
             'descricao':'Descrição',
             'data_fotografia':'data de registro',
